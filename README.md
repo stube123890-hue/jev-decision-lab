@@ -47,9 +47,48 @@ Attention is ~2× faster per decision at this tiny scale (7.1 ms vs 14.8 ms).
 
 ## Files
 
-- `linear_attention_jev_v2.ipynb` — the experiment notebook (runs on free Colab T4)
-- `make_notebook_jev_v2.py` — generator that produced the notebook
-- `results_jev_v2.txt` / `results_jev_v2.json` — the test results
+- `linear_attention_jev_v2.ipynb` / `make_notebook_jev_v2.py` — V2 experiment + generator
+- `linear_attention_jev_v3.ipynb` / `make_notebook_jev_v3.py` — V3 experiment + generator
+- `results_jev_v2.txt` / `results_jev_v2.json`, `results_jev_v3.txt` / `results_jev_v3.json` — test results
+
+## JEV-V3: 15M params + speed techniques (2026-10-14)
+
+Same protocol scaled up: both models ~15.18M params (DIM 392 × 8 layers × 8 heads), totals matched
+within ~2k. Plus a speed section on the v8a side: `torch.compile(mode="reduce-overhead")` + fp16
+autocast inference, a 4-config latency matrix, and a fast-path accuracy check.
+
+```
+=== JEV-V3 TEST RESULTS ===
+config                 task      acc  ece_raw  ece_cal   brier
+jev-transformer        taskA   45.2%    0.398    0.095   0.667
+jev-transformer        taskB   61.0%    0.297    0.081   0.512
+jev-v8a                taskA   47.4%    0.393    0.074   0.647
+jev-v8a                taskB   66.2%    0.283    0.059   0.463
+
+substrate effect (taskA):  jev-v8a 47.4% vs jev-transformer 45.2%
+substrate effect (taskB):  jev-v8a 66.2% vs jev-transformer 61.0%
+
+=== JEV-V3 LATENCY MATRIX ===
+jev-v8a/eager/fp32               17.2 ms/decision
+jev-v8a/compiled/fp16            25.3 ms/decision
+jev-transformer/eager/fp32       7.4 ms/decision
+jev-transformer/compiled/fp16    15.1 ms/decision
+
+=== JEV-V3 FAST-PATH ACCURACY ===
+task A: eager fp32 47.4% | compiled fp16 47.8% | delta +0.40pp
+task B: eager fp32 66.2% | compiled fp16 66.2% | delta +0.00pp
+```
+
+**Reading:** the accuracy win survives scale — v8a takes both tasks again at 15M. The gap narrowed
+on taskA (+4.2pp → +2.2pp) but *widened* on taskB (+3.6pp → +5.2pp, with v8a's absolute accuracy up
+63.4% → 66.2%). The linear decision-training edge did not wash out with capacity.
+
+The speed story went the other way: `torch.compile` + fp16 made **both** models *slower*
+(v8a 17.2→25.3 ms, transformer 7.4→15.1 ms). At batch=1 on tiny models, CUDA-graph overhead
+dominates — compilation only pays off at larger batch/sizes. The fp16 path keeps full accuracy
+(+0.4pp / +0.0pp), but it isn't a fast path here. The ~2.3× latency gap in attention's favor
+remains at this scale; the structural O(T)-vs-O(T²) win for linear only materializes at longer
+contexts, which these 200-char tasks don't exercise — that's the next study.
 
 ## Context
 
