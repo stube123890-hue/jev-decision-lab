@@ -1,0 +1,12 @@
+=== JEV-V2 TEST RESULTS ===
+config                 task      acc  ece_raw  ece_cal   brier
+jev-transformer        taskA   46.2%    0.395    0.063   0.651
+jev-transformer        taskB   59.8%    0.321    0.078   0.540
+jev-v8a                taskA   50.4%    0.374    0.079   0.637
+jev-v8a                taskB   63.4%    0.286    0.063   0.488
+
+substrate effect (taskA):  jev-v8a 50.4% vs jev-transformer 46.2%
+substrate effect (taskB):  jev-v8a 63.4% vs jev-transformer 59.8%
+latency: {'jev-v8a': '14.8ms', 'jev-transformer': '7.1ms'}
+
+SAVE DONE
