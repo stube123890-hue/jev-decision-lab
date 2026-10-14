@@ -1,0 +1,12 @@
+JEV-V4a RESULTS — jev-v8a session (taskC long-context retrieval, test, eager fp32)
+Session: linear_attention_jev_v4a_v8a.ipynb on Colab T4 (third account), 2026-10-14.
+Note: V4 was split into two sessions after Colab killed the combined run twice at ~2.5-3.5h.
+This file covers the v8a session only; the transformer session (V4b) ran separately.
+
+backbone_pretrain: {"final_val_loss": 1.297, "ppl": 3.7}
+finetune_taskC_val_acc_per_epoch: [0.286, 0.282, 0.272, 0.222, 0.284, 0.274]
+finetune_best_val_acc: 0.286
+params: 15090880
+jev-v8a/taskC: {"acc": 0.268, "ece_raw": 0.221, "ece_cal": 0.049, "brier": 0.755, "temp": 4.81}
+latency_sweep_ms_per_decision: {"T256": 14.1, "T512": 16.4, "T1024": 22.6, "T2048": 35.1, "T4096": 60.7, "T8192": 108.6}
+crossover: single-model session — combine the V4a and V4b sweeps to compute the crossover
