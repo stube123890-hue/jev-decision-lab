@@ -137,3 +137,45 @@ contexts, which these 200-char tasks don't exercise — that's the next study.
 This follows JEV-V1 (in `linear-attention-lab/experiments/jev-v1/`), which compared Jev-style vs
 linear decision *heads* on *frozen* backbones. V2 answers the corrected question: two full Jev-style
 models, which substrate performs better.
+
+## JEV-V5: does directionality help? (bidirectional × architecture, 2026-10-15)
+
+V4 left a question open: causal-only models, ~25%-chance accuracy. V5 tests whether letting the
+encoder see the full context (bidirectional) changes the picture — a 2×2 of directionality ×
+architecture at the same 15M budget (DIM 352×8L×8H, byte-identical to V4; bidirectionality adds
+zero params):
+
+| | causal (V4 reference) | bidirectional (V5) |
+|---|---|---|
+| **v8a (linear)** | 26.8% test | **29.0% test** ✅ V5b |
+| **transformer (attention)** | 28.2% test | pending — V5d next |
+
+**V5b (jev-v8a-bidir, 15.09M)** — shared-weight forward+backward scans summed, same taskC, same
+protocol as V4a. Results (`results_jev_v5b_v8a_bidir.txt`):
+
+```
+=== JEV-V5b TEST RESULTS (jev-v8a-bidir) ===
+config                 task      acc  ece_raw  ece_cal   brier
+jev-v8a-bidir          taskC   29.0%    0.062    0.025   0.746
+
+=== JEV-V5b LATENCY SWEEP (jev-v8a-bidir) ===
+ T (chars)   jev-v8a-bidir ms
+       256               24.1
+       512               26.1
+      1024               35.7
+      2048               56.0
+      4096               97.5
+      8192              178.2
+```
+
+**Reading:** directionality helps the linear model — 26.8% → 29.0% test (+2.2pp), the first
+above-noise movement in this task series (val sat at chance 24–25% all 6 epochs; the test lift
+came with calibration: ECE 0.062→0.025). The backward pass costs latency: bidir is ~1.6–1.7×
+slower than causal v8a at every T (24.1 vs 14.1 ms at T=256; 178.2 vs 108.6 ms at T=8192), but
+still O(T)-linear — the scaling shape is preserved, only the constant moved.
+
+**Methodological note:** the bidir backbone's Stage-0 LM pre-train reached val 0.098 (ppl 1.1) vs
+1.297 for the causal V4 backbone — expected, since a bidirectional mixer sees future tokens
+during next-token pre-training and the task becomes near-trivial. Stage 0 is only
+initialization; both V5 conditions share the advantage, so the directionality comparison stays
+fair. Hypotheses H1–H4 and full protocol: `linear-attention-lab/experiments/jev-v5/SPEC.md`.
