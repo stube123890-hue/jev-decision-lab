@@ -1,0 +1,30 @@
+{
+ "jev-v8a-bidir/taskC": {
+  "acc": 0.2900000214576721,
+  "ece_raw": 0.0618935493985191,
+  "ece_cal": 0.024573709175456315,
+  "brier": 0.7457867860794067,
+  "temp": 4.268849849700928
+ },
+ "latency_sweep": {
+  "256": {
+   "jev-v8a-bidir": 24.125044345855713
+  },
+  "512": {
+   "jev-v8a-bidir": 26.071207523345947
+  },
+  "1024": {
+   "jev-v8a-bidir": 35.67988872528076
+  },
+  "2048": {
+   "jev-v8a-bidir": 56.04503154754639
+  },
+  "4096": {
+   "jev-v8a-bidir": 97.53878593444824
+  },
+  "8192": {
+   "jev-v8a-bidir": 178.23106050491333
+  }
+ },
+ "crossover": "crossover: single-model session \u2014 combine the V5a..V5d sweeps to compute the 2x2 directionality x architecture table"
+}
