@@ -49,7 +49,49 @@ Attention is ~2× faster per decision at this tiny scale (7.1 ms vs 14.8 ms).
 
 - `linear_attention_jev_v2.ipynb` / `make_notebook_jev_v2.py` — V2 experiment + generator
 - `linear_attention_jev_v3.ipynb` / `make_notebook_jev_v3.py` — V3 experiment + generator
-- `results_jev_v2.txt` / `results_jev_v2.json`, `results_jev_v3.txt` / `results_jev_v3.json` — test results
+- `linear_attention_jev_v4a_v8a.ipynb` / `linear_attention_jev_v4b_transformer.ipynb` / `make_notebook_jev_v4_split.py` — V4 split sessions + generator
+- `results_jev_v4a_v8a.txt` / `results_jev_v4a_v8a.json`, `results_jev_v4b_transformer.txt` / `results_jev_v4b_transformer.json` — per-session test results
+
+## JEV-V4: long-context retrieval decisions + the crossover (2026-10-14)
+
+New task, new question. **taskC** — long-context retrieval-decision: 2k–8k character passages,
+"which of these 4 sentences appears in the passage?", 2000/500/500 train/val/test. Same ~15.09M
+budget (v8a 15,090,880 vs transformer 15,088,832 params), same Jev head, same protocol. Plus a
+latency sweep at T=256…8192 (ms/decision, OOM as a finding) and a crossover line between the two
+sweeps.
+
+Logistics note: the combined run was killed by Colab twice at ~2.5–3.5h with no checkpoints, so
+V4 ran as two sessions — V4a (jev-v8a) and V4b (jev-transformer) — with byte-identical cells,
+seeds, and hyperparameters (generator: `make_notebook_jev_v4_split.py`).
+
+```
+=== JEV-V4 TEST RESULTS (taskC) ===
+config                 task      acc  ece_raw  ece_cal   brier
+jev-v8a                taskC   26.8%    0.221    0.049   0.755
+jev-transformer        taskC   28.2%    0.079    0.024   0.751
+
+backbone val loss: v8a 1.297 (ppl 3.7) | transformer 1.323 (ppl 3.8)
+finetune val acc:  v8a 28.6/28.2/27.2/22.2/28.4/27.4 | transformer 26.8/23.6/23.0/24.8/26.8/27.8
+
+=== JEV-V4 LATENCY SWEEP (ms/decision, eager fp32, T4) ===
+T                  256    512   1024   2048   4096   8192
+jev-v8a             14.1   16.4   22.6   35.1   60.7  108.6
+jev-transformer     11.6   14.3   20.6   37.3   85.5  257.7
+
+crossover: ~T=1556 tokens (log-log interpolation) — transformer faster below,
+v8a faster above; at T=8192 v8a is 2.37x faster. No OOM at 8192 for either.
+```
+
+**Training speed (timestamp estimates from run logs):** jev-v8a's 6 taskC finetune epochs
+completed in roughly half an hour; jev-transformer's took ~25–30 minutes *per epoch* — about a
+6–7x per-epoch gap. Same data, same budget; the difference is the O(T²) attention tax on
+2k–8k-char passages. (Estimates from session timestamps, not exact timers.)
+
+**Reading:** taskC is brutal — both models sit near the 25% chance baseline (26.8% vs 28.2%
+test), so the accuracy delta is noise, not a verdict. The verdict is structural: the latency
+crossover lands at ~1.5k tokens, and beyond it the linear substrate pulls away — 2.37x faster
+at 8k context. Combined with the ~6–7x training-speed gap, the efficiency case for linear
+recurrence at long context is the finding here, independent of who wins accuracy.
 
 ## JEV-V3: 15M params + speed techniques (2026-10-14)
 

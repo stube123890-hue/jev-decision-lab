@@ -1,0 +1,4 @@
+JEV-V4b RESULTS (test, eager fp32)
+jev-transformer/taskC: {"acc": 0.28200000524520874, "ece_raw": 0.07916225685039535, "ece_cal": 0.02384259062819183, "brier": 0.7509908676147461, "temp": 4.218290328979492}
+latency_sweep: {"256": {"jev-transformer": 11.641814708709717}, "512": {"jev-transformer": 14.285690784454346}, "1024": {"jev-transformer": 20.630249977111816}, "2048": {"jev-transformer": 37.30759143829346}, "4096": {"jev-transformer": 85.4913330078125}, "8192": {"jev-transformer": 257.70803213119507}}
+crossover: crossover: single-model session — combine the V4a and V4b sweeps to compute the crossover
