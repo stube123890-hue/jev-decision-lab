@@ -29,7 +29,11 @@ sessions' sweeps into V4's crossover table locally.
 import json
 import os
 
-OUTDIR = "/home/hatch/workspace/linear-attention-lab/experiments/jev-v4"
+# Root of the linear-attention-lab checkout this generator builds against.
+# Set the LINEAR_ATTENTION_LAB_DIR environment variable to point at yours.
+LAB_DIR = os.environ.get("LINEAR_ATTENTION_LAB_DIR", "/path/to/linear-attention-lab")
+
+OUTDIR = LAB_DIR + "/experiments/jev-v4"
 os.makedirs(OUTDIR, exist_ok=True)
 
 
@@ -106,13 +110,13 @@ def get_batch(split="train"):
 def models_cell_src():
     # Same inline recipe as the V4 generator (verified by diff).
     _models_src = open(
-        "/home/hatch/workspace/linear-attention-lab/models.py").read().replace(
+        LAB_DIR + "/models.py").read().replace(
         '"""Linear-recurrent replacement for Transformer self-attention.',
         '"""(inlined) Linear-recurrent replacement for Transformer self-attention.').replace(
         "import math\nimport torch\nimport torch.nn as nn\nimport torch.nn.functional as F\n",
         "import torch.nn as nn\nimport torch.nn.functional as F\n")
     _kern_src = open(
-        "/home/hatch/workspace/linear-attention-lab/triton_kernels.py").read().replace(
+        LAB_DIR + "/triton_kernels.py").read().replace(
         '"""V6: Triton-fused selective scan for the gated segmented state space.',
         '"""(inlined) V6/V7/V8-A: Triton-fused scans.').replace(
         "import torch\nimport torch.nn as nn\nimport triton\nimport triton.language as tl\n",

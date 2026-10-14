@@ -18,7 +18,11 @@ Metrics per model per task: accuracy, ECE raw/calibrated, Brier, latency.
 import json
 import os
 
-os.makedirs("/home/hatch/workspace/linear-attention-lab/experiments/jev-v2",
+# Root of the linear-attention-lab checkout this generator builds against.
+# Set the LINEAR_ATTENTION_LAB_DIR environment variable to point at yours.
+LAB_DIR = os.environ.get("LINEAR_ATTENTION_LAB_DIR", "/path/to/linear-attention-lab")
+
+os.makedirs(LAB_DIR + "/experiments/jev-v2",
             exist_ok=True)
 
 NB = {"nbformat": 4, "nbformat_minor": 0,
@@ -103,12 +107,12 @@ def get_batch(split="train"):
 """)
 
 md("## 2. Models — inline models.py + triton_kernels.py (same as V1)")
-_models_src = open("/home/hatch/workspace/linear-attention-lab/models.py").read().replace(
+_models_src = open(LAB_DIR + "/models.py").read().replace(
     '"""Linear-recurrent replacement for Transformer self-attention.',
     '"""(inlined) Linear-recurrent replacement for Transformer self-attention.').replace(
     "import math\nimport torch\nimport torch.nn as nn\nimport torch.nn.functional as F\n",
     "import torch.nn as nn\nimport torch.nn.functional as F\n")
-_kern_src = open("/home/hatch/workspace/linear-attention-lab/triton_kernels.py").read().replace(
+_kern_src = open(LAB_DIR + "/triton_kernels.py").read().replace(
     '"""V6: Triton-fused selective scan for the gated segmented state space.',
     '"""(inlined) V6/V7/V8-A: Triton-fused scans.').replace(
     "import torch\nimport torch.nn as nn\nimport triton\nimport triton.language as tl\n",
@@ -450,6 +454,6 @@ print()
 print("SAVE DONE")
 """)
 
-with open("/home/hatch/workspace/linear-attention-lab/experiments/jev-v2/linear_attention_jev_v2.ipynb", "w") as f:
+with open(LAB_DIR + "/experiments/jev-v2/linear_attention_jev_v2.ipynb", "w") as f:
     json.dump(NB, f)
 print(f"notebook written: {len(NB['cells'])} cells")
